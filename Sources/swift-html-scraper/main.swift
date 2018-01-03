@@ -16,7 +16,7 @@ func exit(_ success: Bool) {
 }
 
 // Fetch the HTML data as a string
-func fetchData(then: @escaping (String) -> Void) {
+func getHtmlResponse(then: @escaping (String) -> Void) {
     guard let url = URL(string: pageToParse) else {
         latch.signal()
         return
@@ -41,7 +41,7 @@ func fetchData(then: @escaping (String) -> Void) {
 }
 
 // Parse the HTML for the elements we want
-func findPuzzleElements(html: String, then: @escaping (Elements) -> Void) {
+func findElements(html: String, then: @escaping (Elements) -> Void) {
     do{
         let doc: Document = try SwiftSoup.parse(html)
         let divs: Elements = try doc.select("#MainContent_lblPuzzles").select("div.4u")
@@ -56,12 +56,20 @@ func findPuzzleElements(html: String, then: @escaping (Elements) -> Void) {
     }
 }
 
+// Parse the elements to Model classes
+func parse(elements: Elements, then: @escaping ([Puzzle]) -> Void) {
+    let models = elements.array().map { Puzzle(from: $0) }
+    then(models)
+}
 
-
-fetchData {
-    findPuzzleElements(html: $0) {
-        log.d(try! $0.toString())
-        exit(true)
+getHtmlResponse {
+    findElements(html: $0) {
+//        log.d(try! $0.toString())
+//        exit(true)
+        parse(elements: $0) {
+            log.d("\($0)")
+            exit(true)
+        }
     }
 }
 

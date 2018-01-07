@@ -62,16 +62,19 @@ func parse(elements: Elements, then: @escaping ([Puzzle]) -> Void) {
     then(models)
 }
 
-getHtmlResponse {
-    findElements(html: $0) {
-//        log.d(try! $0.toString())
-//        exit(true)
-        parse(elements: $0) {
-            log.d("\($0)")
-            exit(true)
-        }
+// Print out the data and exit the program
+func printOutAndExit(data: [Puzzle]) {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .prettyPrinted
+    let json = try! encoder.encode(data)
+    if let jsonString = String(data: json, encoding: .utf8) {
+        log.d(jsonString)
     }
+    exit(true)
 }
+
+// Functional
+getHtmlResponse { findElements(html: $0) { parse(elements: $0) { printOutAndExit(data: $0) } } }
 
 // block main thread until all our tasks are complete
 latch.wait()
